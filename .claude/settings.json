@@ -1,0 +1,56 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:monolith-architecture.aura.build)",
+      "Bash(vercel --prod)",
+      "Bash(python -m pytest *)",
+      "Bash(alembic *)",
+      "Bash(docker compose *)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf .)",
+      "Bash(DROP DATABASE *)",
+      "Bash(DROP TABLE *)",
+      "Bash(TRUNCATE *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/guard-destructive-ops.sh \"$TOOL_INPUT\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/transparency-check.sh \"$TOOL_INPUT\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/quality-gate.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

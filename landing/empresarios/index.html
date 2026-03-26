@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AJI · Assistente Jurídico Inteligente para Empresas</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts: Bricolage Grotesque + Instrument Serif + Geist Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy:  { DEFAULT: '#070F1E', 800: '#0E2441', 700: '#132040' },
+            gold:  { DEFAULT: '#C8A96E', light: '#D4B87A', dark: '#A8894E' },
+            blue:  { brand: '#2563EB' },
+            cyan:  { brand: '#38BDF8' },
+          },
+          fontFamily: {
+            display: ["'Bricolage Grotesque'", 'sans-serif'],
+            serif:   ["'Instrument Serif'", 'serif'],
+            mono:    ["'Geist Mono'", 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { display: none; }
+    body { -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth; }
+
+    /* ── Animations (exact from finex design system) ── */
+    @keyframes fadeInUp  { 0%   { opacity:0; transform:translateY(30px); }  100% { opacity:1; transform:translateY(0); } }
+    @keyframes blurIn    { 0%   { opacity:0; filter:blur(15px); transform:scale(0.95); } 100% { opacity:1; filter:blur(0); transform:scale(1); } }
+    @keyframes beam-spin { to   { transform:rotate(360deg); } }
+    @keyframes lines-slide { 0% { background-position:0 0; } 100% { background-position:24px 0; } }
+    @keyframes marquee   { 0%   { transform:translateX(0); }  100% { transform:translateX(-50%); } }
+    @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+    @keyframes float     { 0%,100% { transform:translateY(0px); } 50% { transform:translateY(-10px); } }
+    @keyframes glow-pulse { 0%,100% { box-shadow:0 0 20px rgba(200,169,110,0.3); } 50% { box-shadow:0 0 40px rgba(200,169,110,0.6); } }
+
+    .scroll-item     { animation-duration:.8s; animation-fill-mode:both; animation-play-state:paused; animation-timing-function:cubic-bezier(0.25,0.46,0.45,0.94); }
+    .scroll-fade-up  { animation-name:fadeInUp; }
+    .scroll-blur-in  { animation-name:blurIn; }
+    .delay-100 { animation-delay:100ms; }
+    .delay-200 { animation-delay:200ms; }
+    .delay-300 { animation-delay:300ms; }
+    .delay-500 { animation-delay:500ms; }
+    .delay-700 { animation-delay:700ms; }
+    .animate-marquee { animation:marquee 30s linear infinite; }
+    .animate-float   { animation:float 4s ease-in-out infinite; }
+
+    /* ── Border gradient (from finex) ── */
+    [style*="--border-gradient"]::before {
+      content:""; position:absolute; inset:0; padding:1px;
+      border-radius:var(--border-radius-before,inherit);
+      -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      background:var(--border-gradient); pointer-events:none;
+    }
+
+    /* ── Background dot grid ── */
+    .dot-grid {
+      background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    /* ── Gold glow ── */
+    .gold-glow {
+      box-shadow: 0 0 20px rgba(200,169,110,0.4), inset 0 0 10px rgba(200,169,110,0.15);
+    }
+    .gold-glow:hover {
+      box-shadow: 0 0 40px rgba(200,169,110,0.6), inset 0 0 20px rgba(200,169,110,0.3);
+    }
+  </style>
+</head>
+
+<body class="antialiased overflow-x-hidden text-white bg-[#070F1E] font-display selection:bg-gold selection:text-navy">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       BACKGROUND GLOBAL
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="fixed inset-0 -z-10 pointer-events-none">
+    <!-- Base navy gradient -->
+    <div class="absolute inset-0 bg-[#070F1E]"></div>
+    <!-- Dot grid -->
+    <div class="absolute inset-0 dot-grid opacity-100"></div>
+    <!-- Top-center glow -->
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.15)_0%,transparent_70%)]"></div>
+    <!-- Bottom-right accent -->
+    <div class="absolute bottom-0 right-0 w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_bottom-right,rgba(200,169,110,0.08)_0%,transparent_60%)]"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       NAV (glass pill,  exact from finex)
+       ══════════════════════════════════════════════════════════════ -->
+  <nav class="flex z-50 fixed w-full pt-5 px-4 top-0 items-center justify-center">
+    <div class="scroll-item scroll-fade-up flex bg-black/80 w-full max-w-5xl border-white/10 border rounded-full py-1.5 px-2 relative shadow-2xl backdrop-blur-md items-center justify-between" style="animation-play-state:running">
+
+      <!-- Logo -->
+      <a href="#hero" class="flex items-center gap-2.5 pl-3">
+        <!-- AJI logo inline SVG (simplified) -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="120" height="36">
+          <g transform="translate(22,22)" fill="none" stroke="#C8A96E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Gear outline -->
+            <path d="M-5,-18 L0,-22 L5,-18 Q6,-17 7,-17 L14,-15 L15,-7 Q16,-6 17,-5 L22,0 L17,5 Q16,6 15,7 L14,15 L7,17 Q6,17 5,18 L0,22 L-5,18 Q-6,17 -7,17 L-14,15 L-15,7 Q-16,6 -17,5 L-22,0 L-17,-5 Q-16,-6 -15,-7 L-14,-15 L-7,-17 Q-6,-17 -5,-18 Z"/>
+            <!-- Fissure -->
+            <line x1="0" y1="-17" x2="0" y2="2"/>
+            <!-- Left lobe gyri -->
+            <path d="M0,-14 C-3,-17 -9,-16 -12,-12 C-15,-8 -13,-2 -9,1 C-7,2 -3,2 0,1"/>
+            <path d="M0,-8 C-2,-11 -6,-10 -8,-7 C-10,-4 -8,-1 -5,1 C-3,2 -1,2 0,1"/>
+            <!-- Right lobe gyri -->
+            <path d="M0,-14 C3,-17 9,-16 12,-12 C15,-8 13,-2 9,1 C7,2 3,2 0,1"/>
+            <path d="M0,-8 C2,-11 6,-10 8,-7 C10,-4 8,-1 5,1 C3,2 1,2 0,1"/>
+            <!-- Circuit -->
+            <line x1="-5" y1="2" x2="5" y2="2"/>
+            <line x1="-5" y1="2" x2="-11" y2="9"/>
+            <line x1="5" y1="2" x2="11" y2="9"/>
+            <line x1="-11" y1="9" x2="0" y2="6"/>
+            <line x1="11" y1="9" x2="0" y2="6"/>
+            <line x1="-11" y1="9" x2="-8" y2="16"/>
+            <line x1="11" y1="9" x2="8" y2="16"/>
+            <!-- Nodes -->
+            <circle cx="0" cy="-17" r="1.5" fill="#C8A96E"/>
+            <circle cx="-16" cy="0" r="1.5" fill="#C8A96E"/>
+            <circle cx="16" cy="0" r="1.5" fill="#C8A96E"/>
+            <circle cx="-8" cy="16" r="1.5" fill="#C8A96E"/>
+            <circle cx="8" cy="16" r="1.5" fill="#C8A96E"/>
+          </g>
+          <!-- AJI text -->
+          <text x="52" y="30" font-family="'Bricolage Grotesque', sans-serif" font-weight="800" font-size="26" letter-spacing="-0.5" fill="#F8F8F8">AJI</text>
+        </svg>
+      </a>
+
+      <!-- Nav links (desktop) -->
+      <div class="hidden md:flex gap-6 -translate-x-1/2 absolute left-1/2 items-center">
+        <a href="#problema" class="text-[13px] hover:text-white transition-colors font-medium text-white/60 tracking-wide">O Problema</a>
+        <a href="#solucao" class="text-[13px] hover:text-white transition-colors font-medium text-white/60 tracking-wide">Solução</a>
+        <a href="#planos" class="text-[13px] hover:text-white transition-colors font-medium text-white/60 tracking-wide">Planos</a>
+      </div>
+
+      <!-- CTA -->
+      <a href="#acesso"
+         class="group flex transition-all duration-300 gold-glow hover:scale-[1.02] items-center justify-center bg-black/60 border-[#C8A96E] border rounded-full py-2.5 px-5">
+        <span class="text-[13px] font-semibold text-[#C8A96E] group-hover:text-[#D4B87A] tracking-tight z-10 relative whitespace-nowrap">Quero acesso antecipado</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       HERO
+       ══════════════════════════════════════════════════════════════ -->
+  <main class="flex flex-col z-10 pt-36 pb-24 px-6 relative items-center justify-center text-center" id="hero">
+
+    <!-- Badge,  AJI explicado -->
+    <div class="scroll-item scroll-fade-up inline-flex hover:bg-white/10 transition-colors cursor-default bg-white/5 border-white/10 border rounded-full py-1.5 px-4 backdrop-blur-sm items-center gap-2 mb-8" style="animation-play-state:running">
+      <div class="w-2 h-2 rounded-full bg-[#C8A96E] shadow-[0_0_8px_rgba(200,169,110,0.8)]" style="animation:pulse-dot 2s ease-in-out infinite"></div>
+      <span class="text-[12px] text-[#C8A96E] font-semibold tracking-widest uppercase">AJI · Assistente Jurídico Inteligente</span>
+    </div>
+
+    <!-- Headline -->
+    <h1 class="scroll-item scroll-fade-up delay-100 text-5xl sm:text-6xl lg:text-7xl font-display font-extrabold tracking-tight leading-[1.05] max-w-4xl mb-4" style="animation-play-state:running">
+      A decisão que você tomar hoje<br/>
+      <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#C8A96E] to-[#38BDF8]">pode virar um processo amanhã.</span>
+    </h1>
+
+    <!-- Subheadline italic -->
+    <p class="scroll-item scroll-fade-up delay-200 font-serif italic text-xl sm:text-2xl text-white/50 mb-6 max-w-2xl" style="animation-play-state:running">
+      A maioria dos empresários só descobre o erro quando já é tarde.
+    </p>
+
+    <!-- Body copy -->
+    <p class="scroll-item scroll-fade-up delay-300 text-base sm:text-lg text-white/50 max-w-2xl leading-relaxed mb-10 font-light" style="animation-play-state:running">
+      O <strong class="text-white font-semibold">AJI</strong> é uma ferramenta de orientação jurídica preventiva para empresas. Oferece base legal aplicada ao contexto da sua empresa, orienta sobre riscos em rotinas recorrentes e apoia decisões antes que se tornem problemas. <strong class="text-white font-semibold">Com retaguarda de equipe jurídica especializada.</strong>
+    </p>
+
+    <!-- Lead capture form (hero) -->
+    <form id="hero-form" class="scroll-item scroll-fade-up delay-500 w-full max-w-md flex flex-col sm:flex-row gap-3 mb-8" style="animation-play-state:running" onsubmit="handleSubmit(event,'hero-form')">
+      <input
+        type="text" name="whatsapp" placeholder="Seu WhatsApp (ex: 11 99999-0000)"
+        required
+        class="flex-1 bg-white/5 border border-white/10 rounded-full py-3.5 px-5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#C8A96E]/60 focus:bg-white/8 transition-all"
+      />
+      <!-- Beam button (exact from finex) -->
+      <button type="submit"
+        class="group inline-flex overflow-hidden transition-all duration-300 hover:scale-[1.02] focus:outline-none text-sm font-semibold text-white h-[50px] rounded-full px-6 relative items-center justify-center whitespace-nowrap"
+        style="position:relative; --border-gradient:linear-gradient(135deg,rgba(200,169,110,0.4),rgba(200,169,110,0),rgba(200,169,110,0.4)); --border-radius-before:9999px">
+        <div class="absolute inset-0 -z-20 rounded-full overflow-hidden p-[1px]">
+          <div class="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_300deg,#C8A96E_360deg)]" style="animation:beam-spin 3s linear infinite;"></div>
+          <div class="absolute inset-[1px] rounded-full bg-[#070F1E]"></div>
+        </div>
+        <div class="overflow-hidden bg-[#0A1628] rounded-full absolute top-[2px] right-[2px] bottom-[2px] left-[2px]">
+          <div class="bg-gradient-to-b from-[#C8A96E]/10 to-transparent absolute inset-0"></div>
+          <div class="opacity-[0.06] mix-blend-plus-lighter absolute inset-0" style="background-image:repeating-linear-gradient(90deg,#fff,#fff 1px,transparent 1px,transparent 8px);background-size:24px 100%;animation:lines-slide 1.5s linear infinite;"></div>
+          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-1/2 bg-[#C8A96E]/15 blur-2xl rounded-full pointer-events-none group-hover:bg-[#C8A96E]/30 transition-colors duration-500"></div>
+        </div>
+        <span class="relative z-10 uppercase tracking-tight">Quero orientação preventiva →</span>
+      </button>
+    </form>
+
+    <!-- Success state (hidden) -->
+    <div id="hero-success" class="hidden scroll-item scroll-fade-up w-full max-w-md mb-8 p-4 bg-[#C8A96E]/10 border border-[#C8A96E]/30 rounded-2xl text-center" style="animation-play-state:running">
+      <p class="text-[#C8A96E] font-semibold text-sm">✓ Recebido! Entraremos em contato pelo WhatsApp em breve.</p>
+    </div>
+
+    <!-- Social proof -->
+    <div class="scroll-item scroll-fade-up delay-700 flex items-center gap-3" style="animation-play-state:running">
+      <div class="flex -space-x-2">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#C8A96E]/40 to-[#C8A96E]/20 border-2 border-[#070F1E] flex items-center justify-center text-[10px] font-bold text-[#C8A96E]">MR</div>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/40 to-blue-500/20 border-2 border-[#070F1E] flex items-center justify-center text-[10px] font-bold text-blue-400">JS</div>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500/40 to-cyan-500/20 border-2 border-[#070F1E] flex items-center justify-center text-[10px] font-bold text-cyan-400">AL</div>
+        <div class="w-8 h-8 rounded-full bg-white/10 border-2 border-[#070F1E] flex items-center justify-center text-[9px] font-bold text-white/50">+47</div>
+      </div>
+      <p class="text-xs text-white/40 font-light">Seja um dos primeiros <span class="text-white/70 font-medium">100 empresários</span> a ter acesso</p>
+    </div>
+
+    <!-- Hero mockup (chat preview) -->
+    <div class="scroll-item scroll-blur-in delay-500 w-full max-w-2xl mx-auto mt-16 animate-float" style="animation-play-state:running">
+      <div class="relative bg-[#0A1628]/80 border border-white/10 rounded-2xl backdrop-blur-sm shadow-2xl text-left overflow-hidden"
+           style="box-shadow:0 0 60px rgba(37,99,235,0.1), 0 0 120px rgba(200,169,110,0.05)">
+
+        <!-- Window chrome -->
+        <div class="flex items-center gap-2 px-5 py-4 border-b border-white/5">
+          <div class="w-2.5 h-2.5 rounded-full bg-red-500/60"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/60"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-green-500/60"></div>
+          <div class="flex-1 text-center">
+            <span class="text-[11px] text-white/20 font-mono">AJI · Assistente Jurídico Inteligente</span>
+          </div>
+        </div>
+
+        <!-- Company context bar -->
+        <div class="flex items-center gap-3 px-5 py-3 bg-[#C8A96E]/5 border-b border-[#C8A96E]/10">
+          <div class="w-1.5 h-1.5 rounded-full bg-[#C8A96E] shadow-[0_0_6px_rgba(200,169,110,0.8)]" style="animation:pulse-dot 2s ease-in-out infinite"></div>
+          <span class="text-[11px] text-[#C8A96E]/70 font-mono">Construtora Silva Ltda &nbsp;·&nbsp; CNPJ 12.345.678/0001-90 &nbsp;·&nbsp; Plano Profissional</span>
+        </div>
+
+        <div class="flex flex-col gap-4 p-5">
+
+          <!-- User message -->
+          <div class="flex justify-end">
+            <div class="bg-white/5 border border-white/10 rounded-2xl rounded-tr-sm px-4 py-3 max-w-sm">
+              <p class="text-sm text-white/80">Preciso emitir uma advertência para o Carlos Mendes, chegou atrasado 4 vezes esse mês. Pode gerar o documento?</p>
+            </div>
+          </div>
+
+          <!-- AJI response -->
+          <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-full bg-[#C8A96E]/10 border border-[#C8A96E]/30 flex items-center justify-center shrink-0 mt-0.5">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#C8A96E" stroke-width="1.6" stroke-linecap="round">
+                <path d="M8 2 C5,2 3,4 3,6.5 C3,8.5 4,10 6,10.5 L6,12 L10,12 L10,10.5 C12,10 13,8.5 13,6.5 C13,4 11,2 8,2 Z"/>
+                <line x1="6" y1="12" x2="6" y2="14"/><line x1="10" y1="12" x2="10" y2="14"/>
+              </svg>
+            </div>
+            <div class="flex-1 flex flex-col gap-3">
+
+              <!-- Status chip -->
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 bg-[#C8A96E]/10 border border-[#C8A96E]/20 rounded-full px-3 py-1 text-[11px] text-[#C8A96E] font-semibold uppercase tracking-wider">
+                  <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="10 3 5 8 2 5"/></svg>
+                  Documento gerado
+                </span>
+                <span class="text-[11px] text-white/25 font-light">· base: art. 474 CLT</span>
+              </div>
+
+              <!-- Document preview -->
+              <div class="bg-[#060D1A] border border-white/10 rounded-xl overflow-hidden">
+                <!-- Doc header -->
+                <div class="flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-white/[0.02]">
+                  <div class="flex items-center gap-2">
+                    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round"><path d="M9 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6L9 2z"/><polyline points="9 2 9 6 13 6"/></svg>
+                    <span class="text-[11px] text-white/50 font-medium">advertencia_carlos_mendes.pdf</span>
+                  </div>
+                  <span class="text-[10px] text-[#C8A96E]/60 font-mono">pronto para assinar</span>
+                </div>
+                <!-- Doc body -->
+                <div class="px-4 py-3 font-mono text-[10.5px] leading-[1.7] text-white/40 space-y-1">
+                  <p class="text-white/60 font-semibold text-[11px]">ADVERTÊNCIA ESCRITA Nº 001/2026</p>
+                  <p><span class="text-white/25">Empresa:</span> <span class="text-white/70">Construtora Silva Ltda</span></p>
+                  <p><span class="text-white/25">CNPJ:</span> <span class="text-white/70">12.345.678/0001-90</span></p>
+                  <p><span class="text-white/25">Funcionário:</span> <span class="text-white/70">Carlos Mendes · CLT · Operador</span></p>
+                  <p><span class="text-white/25">Infração:</span> <span class="text-white/70">Atrasos reiterados (4 ocorrências em março/2026)</span></p>
+                  <div class="border-t border-white/5 pt-2 mt-1">
+                    <p class="text-white/30 text-[10px]">Fundamento legal: art. 474 da CLT,  pena disciplinar proporcional à falta.</p>
+                    <p class="text-white/30 text-[10px]">Nova infração no período de <span class="text-white/50">90 dias</span> poderá ensejar suspensão ou demissão por justa causa.</p>
+                  </div>
+                  <div class="flex gap-8 pt-2 border-t border-white/5 mt-1">
+                    <div>
+                      <div class="border-b border-white/20 w-28 mb-0.5"></div>
+                      <p class="text-[9px] text-white/20">Assinatura do Empregador</p>
+                    </div>
+                    <div>
+                      <div class="border-b border-white/20 w-28 mb-0.5"></div>
+                      <p class="text-[9px] text-white/20">Assinatura do Funcionário</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action chips -->
+              <div class="flex flex-wrap gap-2">
+                <button class="text-[11px] text-white/40 border border-white/10 rounded-full px-3 py-1 hover:border-white/20 transition-colors">↓ Baixar PDF</button>
+                <button class="text-[11px] text-white/40 border border-white/10 rounded-full px-3 py-1 hover:border-white/20 transition-colors">✎ Editar</button>
+                <button class="text-[11px] text-[#C8A96E]/60 border border-[#C8A96E]/20 rounded-full px-3 py-1 hover:border-[#C8A96E]/40 transition-colors">⚖ Ver orientação jurídica completa</button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       MARQUEE,  logos / provas sociais
+       ══════════════════════════════════════════════════════════════ -->
+  <section class="py-10 border-y border-white/5 overflow-hidden relative">
+    <div class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#070F1E] to-transparent z-10"></div>
+    <div class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#070F1E] to-transparent z-10"></div>
+    <div class="flex animate-marquee">
+      <div class="flex items-center gap-12 px-6 shrink-0">
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Direito do Trabalho</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Contratos Empresariais</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Cobrança & Inadimplência</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Prevenção de Riscos</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Rotinas Jurídicas</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">LGPD para Empresas</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+      </div>
+      <!-- Duplicate for seamless loop -->
+      <div class="flex items-center gap-12 px-6 shrink-0" aria-hidden="true">
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Direito do Trabalho</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Contratos Empresariais</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Cobrança & Inadimplência</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Prevenção de Riscos</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">Rotinas Jurídicas</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+        <span class="text-xs text-white/25 font-semibold uppercase tracking-widest whitespace-nowrap">LGPD para Empresas</span>
+        <span class="text-[#C8A96E]/30">✦</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO PROBLEMA
+       ══════════════════════════════════════════════════════════════ -->
+  <section id="problema" class="py-24 px-6 max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <span class="scroll-item scroll-fade-up text-xs text-[#C8A96E] font-semibold tracking-[0.25em] uppercase block mb-4" style="animation-play-state:running">O Problema</span>
+      <h2 class="scroll-item scroll-fade-up delay-100 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight" style="animation-play-state:running">
+        Todo dia você toma decisões<br/>
+        <span class="font-serif italic font-normal text-white/50">que podem virar processo,  e não percebe</span>
+      </h2>
+      <p class="scroll-item scroll-fade-up delay-200 text-white/40 mt-4 text-sm font-light" style="animation-play-state:running">Reconhece alguma dessas situações?</p>
+    </div>
+
+    <!-- Pain cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-12">
+
+      <!-- Card 1,  Demissão -->
+      <div class="scroll-item scroll-fade-up group relative overflow-hidden bg-[#0A0A0C] border border-white/10 rounded-3xl p-8 hover:border-red-500/20 transition-all duration-300" style="animation-play-state:running">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(239,68,68,0.04),transparent_70%)]"></div>
+        <div class="pointer-events-none absolute inset-0 opacity-15" style="background-image:radial-gradient(rgba(255,255,255,0.8) 1px,transparent 1px);background-size:24px 24px"></div>
+        <div class="relative z-10">
+          <div class="flex items-start justify-between mb-5">
+            <div class="w-11 h-11 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <span class="text-[11px] font-mono text-red-400/60 bg-red-500/10 border border-red-500/10 rounded-full px-3 py-1">risco alto</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Demissão feita do jeito errado</h3>
+          <p class="text-sm text-white/50 leading-relaxed font-light mb-4">Demitir sem seguir o rito correto da CLT,  mesmo com justa causa,  pode gerar ação trabalhista. Um processo mal conduzido custa de <strong class="text-white/80">R$ 15.000 a R$ 80.000</strong> ao empregador.</p>
+          <p class="text-xs text-white/25 italic">"Eu achei que podia demitir assim… não sabia que precisava seguir tantos passos."</p>
+        </div>
+      </div>
+
+      <!-- Card 2,  Contrato -->
+      <div class="scroll-item scroll-fade-up delay-100 group relative overflow-hidden bg-[#0A0A0C] border border-white/10 rounded-3xl p-8 hover:border-blue-500/20 transition-all duration-300" style="animation-play-state:running">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,0.04),transparent_70%)]"></div>
+        <div class="pointer-events-none absolute inset-0 opacity-15" style="background-image:radial-gradient(rgba(255,255,255,0.8) 1px,transparent 1px);background-size:24px 24px"></div>
+        <div class="relative z-10">
+          <div class="flex items-start justify-between mb-5">
+            <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <span class="text-[11px] font-mono text-blue-400/60 bg-blue-500/10 border border-blue-500/10 rounded-full px-3 py-1">prejuízo silencioso</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Contrato que não protege ninguém</h3>
+          <p class="text-sm text-white/50 leading-relaxed font-light mb-4">Assinar sem entender cada cláusula é entregar o controle ao outro lado. Contratos sem multa contratual, sem foro, sem prazo de vigência viram armadilha quando o cliente não paga ou o fornecedor some.</p>
+          <p class="text-xs text-white/25 italic">"Assinou, aceitou, agora não tem o que fazer."</p>
+        </div>
+      </div>
+
+      <!-- Card 3,  Cobrança -->
+      <div class="scroll-item scroll-fade-up delay-200 group relative overflow-hidden bg-[#0A0A0C] border border-white/10 rounded-3xl p-8 hover:border-cyan-500/20 transition-all duration-300" style="animation-play-state:running">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.04),transparent_70%)]"></div>
+        <div class="pointer-events-none absolute inset-0 opacity-15" style="background-image:radial-gradient(rgba(255,255,255,0.8) 1px,transparent 1px);background-size:24px 24px"></div>
+        <div class="relative z-10">
+          <div class="flex items-start justify-between mb-5">
+            <div class="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <span class="text-[11px] font-mono text-cyan-400/60 bg-cyan-500/10 border border-cyan-500/10 rounded-full px-3 py-1">dinheiro parado</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Cliente inadimplente sem saber cobrar</h3>
+          <p class="text-sm text-white/50 leading-relaxed font-light mb-4">Cobrar do jeito errado pode configurar coação ou dano moral,  e o credor virar réu. Há um jeito correto de notificar, protestar e acionar judicialmente. A maioria dos empresários não sabe qual é.</p>
+          <p class="text-xs text-white/25 italic">"Fui cobrar e acabei levando uma ação por abuso."</p>
+        </div>
+      </div>
+
+      <!-- Card 4,  Fornecedor -->
+      <div class="scroll-item scroll-fade-up delay-300 group relative overflow-hidden bg-[#0A0A0C] border border-white/10 rounded-3xl p-8 hover:border-amber-500/20 transition-all duration-300" style="animation-play-state:running">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.04),transparent_70%)]"></div>
+        <div class="pointer-events-none absolute inset-0 opacity-15" style="background-image:radial-gradient(rgba(255,255,255,0.8) 1px,transparent 1px);background-size:24px 24px"></div>
+        <div class="relative z-10">
+          <div class="flex items-start justify-between mb-5">
+            <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <span class="text-[11px] font-mono text-amber-400/60 bg-amber-500/10 border border-amber-500/10 rounded-full px-3 py-1">decisão sem respaldo</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Fornecedor que falha,  e você engole</h3>
+          <p class="text-sm text-white/50 leading-relaxed font-light mb-4">Atraso, produto com defeito, serviço incompleto. Você tem direito de rescindir, exigir multa e ser ressarcido,  mas sem orientação, aceita o prejuízo ou age de um jeito que gera outra disputa.</p>
+          <p class="text-xs text-white/25 italic">"Engoli o prejuízo porque não sabia que podia exigir."</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultado do problema + CTA intermediário -->
+    <div class="scroll-item scroll-fade-up bg-gradient-to-b from-white/[0.03] to-transparent border border-white/[0.06] rounded-3xl p-8 text-center" style="animation-play-state:running">
+      <p class="text-xl font-light text-white/60 leading-relaxed max-w-2xl mx-auto mb-6">
+        O problema não é falta de informação,  é falta de <strong class="text-white font-semibold">orientação aplicada ao contexto da sua empresa.</strong> O Google dá artigos. O ChatGPT dá respostas genéricas. O advogado não está disponível na hora certa.
+      </p>
+      <a href="#acesso"
+         class="inline-flex items-center gap-2 bg-[#C8A96E]/10 border border-[#C8A96E]/30 hover:border-[#C8A96E]/60 text-[#C8A96E] hover:text-[#D4B87A] rounded-full py-3 px-7 text-sm font-semibold transition-all duration-300 hover:bg-[#C8A96E]/15">
+        Quero orientação jurídica agora
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- Frase de impacto -->
+  <div class="py-16 px-6 text-center border-y border-white/[0.04]">
+    <p class="text-2xl sm:text-3xl font-display font-bold text-white/80 max-w-3xl mx-auto leading-snug">
+      Decisões jurídicas erradas não avisam.<br/>
+      <span class="font-serif italic font-normal text-white/40">Elas cobram depois.</span>
+    </p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO SOLUÇÃO
+       ══════════════════════════════════════════════════════════════ -->
+  <section id="solucao" class="py-24 px-6 max-w-6xl mx-auto border-t border-white/[0.04]">
+    <div class="text-center mb-16">
+      <span class="scroll-item scroll-fade-up text-xs text-[#C8A96E] font-semibold tracking-[0.25em] uppercase block mb-4" style="animation-play-state:running">A Solução</span>
+      <h2 class="scroll-item scroll-fade-up delay-100 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight" style="animation-play-state:running">
+        Saiba quais riscos considerar<br/>
+        <span class="font-serif italic font-normal text-white/50">antes de agir</span>
+      </h2>
+      <p class="scroll-item scroll-fade-up delay-200 text-base text-white/40 max-w-xl mx-auto mt-4 font-light leading-relaxed" style="animation-play-state:running">
+        O AJI aplica base legal ao contexto da sua empresa e orienta sobre rotinas jurídicas recorrentes. Não é uma IA genérica. É uma ferramenta preventiva séria, com supervisão jurídica profissional.
+      </p>
+    </div>
+
+    <!-- Steps -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Step 1 -->
+      <div class="scroll-item scroll-fade-up relative" style="animation-play-state:running">
+        <div class="bg-[#0A0A0C] border border-white/10 rounded-3xl p-8 h-full hover:border-[#C8A96E]/20 transition-all duration-300">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-[#C8A96E]/10 text-[12px] font-mono font-bold text-[#C8A96E] border border-[#C8A96E]/20">01</span>
+            <div class="h-px flex-1 bg-gradient-to-r from-[#C8A96E]/20 to-transparent"></div>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-3">Faça sua pergunta</h3>
+          <p class="text-sm text-white/50 leading-relaxed font-light">Em linguagem natural, como você perguntaria para um advogado amigo. Sem juridiquês.</p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="scroll-item scroll-fade-up delay-100 relative" style="animation-play-state:running">
+        <div class="bg-[#0A0A0C] border border-[#C8A96E]/20 rounded-3xl p-8 h-full relative overflow-hidden"
+             style="box-shadow:0 0 40px rgba(200,169,110,0.08)">
+          <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(200,169,110,0.06),transparent_60%)]"></div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-6">
+              <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-[#C8A96E]/15 text-[12px] font-mono font-bold text-[#C8A96E] border border-[#C8A96E]/30">02</span>
+              <div class="h-px flex-1 bg-gradient-to-r from-[#C8A96E]/30 to-transparent"></div>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-3">Receba orientação clara</h3>
+            <p class="text-sm text-white/50 leading-relaxed font-light">O AJI analisa o contexto, cita a base legal e explica os riscos. Resposta em segundos, sempre disponível.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="scroll-item scroll-fade-up delay-200 relative" style="animation-play-state:running">
+        <div class="bg-[#0A0A0C] border border-white/10 rounded-3xl p-8 h-full hover:border-[#C8A96E]/20 transition-all duration-300">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-[#C8A96E]/10 text-[12px] font-mono font-bold text-[#C8A96E] border border-[#C8A96E]/20">03</span>
+            <div class="h-px flex-1 bg-gradient-to-r from-[#C8A96E]/20 to-transparent"></div>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-3">Aja com mais informação</h3>
+          <p class="text-sm text-white/50 leading-relaxed font-light">Você toma a decisão com mais contexto jurídico. Casos que exijam atuação formal são encaminhados para análise de advogado especializado.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO COMPARATIVO,  AJI vs ChatGPT
+       ══════════════════════════════════════════════════════════════ -->
+  <section class="py-24 px-6 max-w-5xl mx-auto border-t border-white/[0.04]">
+    <div class="text-center mb-16">
+      <span class="scroll-item scroll-fade-up text-xs text-[#C8A96E] font-semibold tracking-[0.25em] uppercase block mb-4" style="animation-play-state:running">Por que o AJI?</span>
+      <h2 class="scroll-item scroll-fade-up delay-100 text-3xl sm:text-4xl font-extrabold tracking-tight" style="animation-play-state:running">
+        Não é mais um chat de IA.<br/>
+        <span class="font-serif italic font-normal text-white/50">É um sistema jurídico empresarial.</span>
+      </h2>
+      <p class="scroll-item scroll-fade-up delay-200 text-white/40 mt-4 text-sm font-light max-w-lg mx-auto" style="animation-play-state:running">
+        O ChatGPT é uma ferramenta geral. O AJI foi construído do zero para o contexto jurídico da empresa brasileira,  com base legal curada, responsável OAB e escalada para advogado humano.
+      </p>
+    </div>
+
+    <!-- Comparison table -->
+    <div class="scroll-item scroll-fade-up overflow-x-auto -mx-2 px-2" style="animation-play-state:running">
+    <div class="relative rounded-3xl overflow-hidden min-w-[600px]">
+      <!-- Glow behind AJI column -->
+      <div class="pointer-events-none absolute right-0 top-0 w-1/2 h-full bg-[radial-gradient(ellipse_at_top-right,rgba(200,169,110,0.07),transparent_60%)]"></div>
+
+      <!-- Header row -->
+      <div class="grid grid-cols-[1fr_1fr_1fr] bg-[#0A0A0C] border border-white/[0.07] rounded-t-3xl overflow-hidden">
+        <div class="p-5 border-r border-white/[0.07]">
+          <p class="text-xs text-white/30 font-semibold uppercase tracking-widest">Recurso</p>
+        </div>
+        <!-- ChatGPT -->
+        <div class="p-5 border-r border-white/[0.07] flex items-center gap-3">
+          <div class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+          </div>
+          <span class="text-sm font-semibold text-white/35">ChatGPT / IA geral</span>
+        </div>
+        <!-- AJI -->
+        <div class="p-5 flex items-center gap-3" style="background:linear-gradient(135deg,rgba(200,169,110,0.06),transparent)">
+          <div class="w-7 h-7 rounded-lg bg-[#C8A96E]/15 border border-[#C8A96E]/30 flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#C8A96E" stroke-width="1.6" stroke-linecap="round">
+              <path d="M8 2 C5,2 3,4 3,6.5 C3,8.5 4,10 6,10.5 L6,12 L10,12 L10,10.5 C12,10 13,8.5 13,6.5 C13,4 11,2 8,2 Z"/>
+              <line x1="6" y1="12" x2="6" y2="14"/><line x1="10" y1="12" x2="10" y2="14"/>
+            </svg>
+          </div>
+          <span class="text-sm font-bold text-[#C8A96E]">AJI</span>
+        </div>
+      </div>
+
+      <!-- Rows -->
+      <div class="border-x border-white/[0.07] divide-y divide-white/[0.04]">
+
+        <!-- Row 1 -->
+        <div class="grid grid-cols-[1fr_1fr_1fr] hover:bg-white/[0.015] transition-colors">
+          <div class="p-5 border-r border-white/[0.07] flex items-center">
+            <span class="text-sm text-white/60 font-medium">Base jurídica</span>
+          </div>
+          <div class="p-5 border-r border-white/[0.07] flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-white/20 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span class="text-xs text-white/30 font-light leading-relaxed">Treinamento genérico da internet,  pode estar desatualizado ou errado</span>
+          </div>
+          <div class="p-5 flex items-start gap-2.5" style="background:linear-gradient(90deg,rgba(200,169,110,0.03),transparent)">
+            <svg class="w-4 h-4 text-[#C8A96E] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-xs text-white/70 font-light leading-relaxed">CLT, CDC, LGPD, Código Civil,  base curada e atualizada por advogado OAB</span>
+          </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="grid grid-cols-[1fr_1fr_1fr] hover:bg-white/[0.015] transition-colors">
+          <div class="p-5 border-r border-white/[0.07] flex items-center">
+            <span class="text-sm text-white/60 font-medium">Responsável jurídico</span>
+          </div>
+          <div class="p-5 border-r border-white/[0.07] flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-white/20 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span class="text-xs text-white/30 font-light leading-relaxed">Nenhum,  sem garantia legal sobre as respostas</span>
+          </div>
+          <div class="p-5 flex items-start gap-2.5" style="background:linear-gradient(90deg,rgba(200,169,110,0.03),transparent)">
+            <svg class="w-4 h-4 text-[#C8A96E] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-xs text-white/70 font-light leading-relaxed">Advogado OAB inscrito como responsável técnico,  produto juridicamente estruturado</span>
+          </div>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="grid grid-cols-[1fr_1fr_1fr] hover:bg-white/[0.015] transition-colors">
+          <div class="p-5 border-r border-white/[0.07] flex items-center">
+            <span class="text-sm text-white/60 font-medium">Contexto da empresa</span>
+          </div>
+          <div class="p-5 border-r border-white/[0.07] flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-white/20 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span class="text-xs text-white/30 font-light leading-relaxed">Não conhece sua empresa,  você explica do zero em cada conversa</span>
+          </div>
+          <div class="p-5 flex items-start gap-2.5" style="background:linear-gradient(90deg,rgba(200,169,110,0.03),transparent)">
+            <svg class="w-4 h-4 text-[#C8A96E] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-xs text-white/70 font-light leading-relaxed">Conhece seu CNPJ, setor e histórico,  orientação no contexto da sua realidade</span>
+          </div>
+        </div>
+
+        <!-- Row 4 -->
+        <div class="grid grid-cols-[1fr_1fr_1fr] hover:bg-white/[0.015] transition-colors">
+          <div class="p-5 border-r border-white/[0.07] flex items-center">
+            <span class="text-sm text-white/60 font-medium">Geração de documentos</span>
+          </div>
+          <div class="p-5 border-r border-white/[0.07] flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-white/20 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span class="text-xs text-white/30 font-light leading-relaxed">Resposta em texto,  você ainda tem que adaptar, formatar e validar</span>
+          </div>
+          <div class="p-5 flex items-start gap-2.5" style="background:linear-gradient(90deg,rgba(200,169,110,0.03),transparent)">
+            <svg class="w-4 h-4 text-[#C8A96E] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-xs text-white/70 font-light leading-relaxed">Gera advertências, contratos e notificações prontos para assinar e usar</span>
+          </div>
+        </div>
+
+        <!-- Row 5 -->
+        <div class="grid grid-cols-[1fr_1fr_1fr] hover:bg-white/[0.015] transition-colors">
+          <div class="p-5 border-r border-white/[0.07] flex items-center">
+            <span class="text-sm text-white/60 font-medium">Casos complexos</span>
+          </div>
+          <div class="p-5 border-r border-white/[0.07] flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-white/20 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span class="text-xs text-white/30 font-light leading-relaxed">"Consulte um advogado",  fim da conversa</span>
+          </div>
+          <div class="p-5 flex items-start gap-2.5" style="background:linear-gradient(90deg,rgba(200,169,110,0.03),transparent)">
+            <svg class="w-4 h-4 text-[#C8A96E] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-xs text-white/70 font-light leading-relaxed">Escala automaticamente para advogado parceiro especialista,  IA + humano</span>
+          </div>
+        </div>
+
+        <!-- Row 6 -->
+        <div class="grid grid-cols-[1fr_1fr_1fr] hover:bg-white/[0.015] transition-colors">
+          <div class="p-5 border-r border-white/[0.07] flex items-center">
+            <span class="text-sm text-white/60 font-medium">Fluxos guiados</span>
+          </div>
+          <div class="p-5 border-r border-white/[0.07] flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-white/20 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span class="text-xs text-white/30 font-light leading-relaxed">Somente chat aberto,  o risco de omitir um detalhe crítico é seu</span>
+          </div>
+          <div class="p-5 flex items-start gap-2.5" style="background:linear-gradient(90deg,rgba(200,169,110,0.03),transparent)">
+            <svg class="w-4 h-4 text-[#C8A96E] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-xs text-white/70 font-light leading-relaxed">Wizards para justa causa, advertência, rescisão,  coleta o contexto certo automaticamente</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer row,  highlight -->
+      <div class="grid grid-cols-[1fr_1fr_1fr] bg-[#0A0A0C] border border-white/[0.07] rounded-b-3xl overflow-hidden border-t-0">
+        <div class="p-5 border-r border-white/[0.07]">
+          <p class="text-xs text-white/20 font-medium">Resultado</p>
+        </div>
+        <div class="p-5 border-r border-white/[0.07]">
+          <p class="text-xs text-white/25 font-light italic">Resposta genérica. Risco real de tomar a decisão errada.</p>
+        </div>
+        <div class="p-5" style="background:linear-gradient(135deg,rgba(200,169,110,0.06),transparent)">
+          <p class="text-xs text-[#C8A96E]/80 font-semibold">Orientação precisa, documentada, com base legal,  e um advogado se precisar.</p>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- CTA abaixo da tabela -->
+    <div class="text-center mt-10">
+      <a href="#acesso" class="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors font-light">
+        Ver planos e começar grátis
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO TEMPO & DINHEIRO
+       ══════════════════════════════════════════════════════════════ -->
+  <section class="py-24 px-6 max-w-5xl mx-auto border-t border-white/[0.04]">
+    <div class="text-center mb-16">
+      <span class="scroll-item scroll-fade-up text-xs text-[#C8A96E] font-semibold tracking-[0.25em] uppercase block mb-4" style="animation-play-state:running">O ganho real</span>
+      <h2 class="scroll-item scroll-fade-up delay-100 text-3xl sm:text-4xl font-extrabold tracking-tight" style="animation-play-state:running">
+        Economiza tempo.<br/>
+        <span class="font-serif italic font-normal text-white/50">Economiza dinheiro. Evita prejuízo.</span>
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Sem AJI -->
+      <div class="scroll-item scroll-fade-up relative overflow-hidden bg-[#0A0A0C] border border-white/[0.08] rounded-3xl p-8" style="animation-play-state:running">
+        <div class="flex items-center gap-3 mb-7">
+          <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+          <h3 class="text-base font-bold text-white/40">Sem o AJI</h3>
+        </div>
+        <div class="flex flex-col gap-4">
+          <div class="flex items-start gap-3">
+            <span class="text-white/15 font-mono text-xs mt-0.5 w-5 shrink-0">01</span>
+            <div>
+              <p class="text-sm text-white/40 font-medium">Pesquisa no Google</p>
+              <p class="text-xs text-white/20 font-light">Abre 6 abas, lê artigos contraditórios, não sabe qual acreditar</p>
+            </div>
+          </div>
+          <div class="h-px bg-white/5"></div>
+          <div class="flex items-start gap-3">
+            <span class="text-white/15 font-mono text-xs mt-0.5 w-5 shrink-0">02</span>
+            <div>
+              <p class="text-sm text-white/40 font-medium">Pergunta pra alguém "que entende"</p>
+              <p class="text-xs text-white/20 font-light">Amigo, contador, alguém no grupo do WhatsApp,  sem garantia nenhuma</p>
+            </div>
+          </div>
+          <div class="h-px bg-white/5"></div>
+          <div class="flex items-start gap-3">
+            <span class="text-white/15 font-mono text-xs mt-0.5 w-5 shrink-0">03</span>
+            <div>
+              <p class="text-sm text-white/40 font-medium">Marca consulta com advogado</p>
+              <p class="text-xs text-white/20 font-light">Espera 2 ou 3 dias, paga de R$ 300 a R$ 800 por sessão</p>
+            </div>
+          </div>
+          <div class="h-px bg-white/5"></div>
+          <div class="flex items-start gap-3">
+            <span class="text-white/15 font-mono text-xs mt-0.5 w-5 shrink-0">04</span>
+            <div>
+              <p class="text-sm text-white/40 font-medium">Toma a decisão no achismo</p>
+              <p class="text-xs text-white/20 font-light">Com insegurança,  ou pior, com informação errada</p>
+            </div>
+          </div>
+          <div class="h-px bg-white/5"></div>
+          <div class="mt-2 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+            <p class="text-xs text-white/25 font-light">Resultado: <span class="text-white/40">2 a 5 horas perdidas. R$ 300–800 gastos. Ainda sem certeza.</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Com AJI -->
+      <div class="scroll-item scroll-fade-up delay-100 relative overflow-hidden rounded-3xl p-8" style="animation-play-state:running; background:linear-gradient(135deg,#0E2441,#0A1628); border:1px solid rgba(200,169,110,0.2); box-shadow:0 0 40px rgba(200,169,110,0.07)">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top-right,rgba(200,169,110,0.08),transparent_60%)]"></div>
+        <div class="flex items-center gap-3 mb-7 relative">
+          <div class="w-8 h-8 rounded-full bg-[#C8A96E]/15 border border-[#C8A96E]/30 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#C8A96E" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h3 class="text-base font-bold text-[#C8A96E]">Com o AJI</h3>
+        </div>
+        <div class="flex flex-col gap-4 relative">
+          <div class="flex items-start gap-3">
+            <span class="text-[#C8A96E]/30 font-mono text-xs mt-0.5 w-5 shrink-0">01</span>
+            <div>
+              <p class="text-sm text-white/80 font-medium">Faz a pergunta em linguagem natural</p>
+              <p class="text-xs text-white/40 font-light">"Posso suspender o funcionário que chegou bêbado ao trabalho?"</p>
+            </div>
+          </div>
+          <div class="h-px bg-white/5"></div>
+          <div class="flex items-start gap-3">
+            <span class="text-[#C8A96E]/30 font-mono text-xs mt-0.5 w-5 shrink-0">02</span>
+            <div>
+              <p class="text-sm text-white/80 font-medium">AJI analisa o contexto da sua empresa</p>
+              <p class="text-xs text-white/40 font-light">Considera seu setor, histórico e o que a CLT prevê para esse caso específico</p>
+            </div>
+          </div>
+          <div class="h-px bg-white/5"></div>
+          <div class="flex items-start gap-3">
+            <span class="text-[#C8A96E]/30 font-mono text-xs mt-0.5 w-5 shrink-0">03</span>
+            <div>
+              <p class="text-sm text-white/80 font-medium">Recebe orientação com base legal</p>
+              <p class="text-xs text-white/40 font-light">Passo a passo, artigo da lei citado, riscos apontados,  em menos de 30 segundos</p>
+            </div>
+          </div>
+          <div class="h-px bg-white/5"></div>
+          <div class="flex items-start gap-3">
+            <span class="text-[#C8A96E]/30 font-mono text-xs mt-0.5 w-5 shrink-0">04</span>
+            <div>
+              <p class="text-sm text-white/80 font-medium">Documento de referência gerado</p>
+              <p class="text-xs text-white/40 font-light">Advertência ou termo já preenchido com os dados da empresa,  pronto para assinar</p>
+            </div>
+          </div>
+          <div class="h-px bg-white/5"></div>
+          <div class="mt-2 p-4 rounded-2xl bg-[#C8A96E]/5 border border-[#C8A96E]/15">
+            <p class="text-xs text-[#C8A96E]/80 font-semibold">Resultado: menos de 1 minuto. Orientação com base legal de referência. Mais informado para decidir.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA central -->
+    <div class="text-center mt-12">
+      <p class="text-white/30 text-sm font-light mb-5">Menos de R$ 7 por dia para nunca mais tomar uma decisão jurídica no escuro.</p>
+      <a href="#acesso"
+         class="group inline-flex items-center gap-2 bg-[#C8A96E] hover:bg-[#D4B87A] text-[#070F1E] rounded-full py-4 px-8 text-sm font-bold transition-all duration-300 hover:scale-[1.02] shadow-[0_0_30px_rgba(200,169,110,0.3)]">
+        Testar o AJI gratuitamente por 7 dias
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <p class="text-white/20 text-xs mt-3 font-light">Sem cartão de crédito · Cancele quando quiser</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO PLANOS
+       ══════════════════════════════════════════════════════════════ -->
+  <section id="planos" class="py-24 px-6 max-w-6xl mx-auto border-t border-white/[0.04]">
+    <div class="text-center mb-16">
+      <span class="scroll-item scroll-fade-up text-xs text-[#C8A96E] font-semibold tracking-[0.25em] uppercase block mb-4" style="animation-play-state:running">Planos</span>
+      <h2 class="scroll-item scroll-fade-up delay-100 text-3xl sm:text-4xl font-extrabold tracking-tight" style="animation-play-state:running">Escolha o plano da sua empresa</h2>
+      <p class="scroll-item scroll-fade-up delay-200 text-white/40 mt-3 text-sm font-light" style="animation-play-state:running">7 dias grátis · Sem cartão de crédito · Cancele quando quiser</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+
+      <!-- Essencial -->
+      <div class="scroll-item scroll-fade-up bg-[#0A0A0C] border border-white/[0.06] rounded-3xl p-8 hover:border-white/20 transition-all duration-300" style="animation-play-state:running">
+        <h3 class="font-bold text-white text-xl mb-1">Essencial</h3>
+        <p class="text-xs text-white/40 uppercase tracking-wider mb-6 font-medium">Para começar</p>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-4xl font-extrabold tracking-tight">R$ 197</span>
+          <span class="text-sm text-white/40">/mês</span>
+        </div>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-center gap-3 text-sm text-white/70 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            30 consultas por mês
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/70 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            1 usuário
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/70 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Direito do trabalho e contratos
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/30 font-light line-through">
+            <svg class="w-4 h-4 text-white/20 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Suporte prioritário
+          </li>
+        </ul>
+        <a href="#acesso" class="block w-full py-3 px-4 text-center text-xs font-bold uppercase tracking-widest border border-white/10 hover:bg-white/5 rounded-full transition-colors text-white">
+          Começar trial grátis
+        </a>
+      </div>
+
+      <!-- Profissional (destaque) -->
+      <div class="scroll-item scroll-fade-up delay-100 relative rounded-3xl p-8"
+           style="animation-play-state:running; background:linear-gradient(135deg,#0E2441,#0A1628); box-shadow:0 0 50px rgba(200,169,110,0.1); border:1px solid rgba(200,169,110,0.3)">
+        <!-- Popular badge -->
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
+          <span class="inline-flex items-center gap-1.5 bg-[#C8A96E] text-[#070F1E] text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
+            ✦ Mais popular
+          </span>
+        </div>
+        <h3 class="font-bold text-white text-xl mb-1 mt-2">Profissional</h3>
+        <p class="text-xs text-[#C8A96E]/60 uppercase tracking-wider mb-6 font-medium">Para crescer com segurança</p>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-4xl font-extrabold tracking-tight text-[#C8A96E]">R$ 297</span>
+          <span class="text-sm text-white/40">/mês</span>
+        </div>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-center gap-3 text-sm text-white/80 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Consultas ilimitadas
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/80 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Até 3 usuários
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/80 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Todas as áreas do direito
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/80 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Acesso a advogados parceiros
+          </li>
+        </ul>
+        <!-- Beam button (gold) -->
+        <a href="#acesso"
+           class="group inline-flex w-full overflow-hidden transition-all duration-300 hover:scale-[1.02] focus:outline-none text-sm font-semibold text-[#070F1E] h-[50px] rounded-full px-6 relative items-center justify-center"
+           style="position:relative; --border-gradient:linear-gradient(135deg,rgba(200,169,110,0.6),rgba(200,169,110,0.1),rgba(200,169,110,0.6)); --border-radius-before:9999px">
+          <div class="absolute inset-0 -z-20 rounded-full overflow-hidden p-[1px]">
+            <div class="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_300deg,#C8A96E_360deg)]" style="animation:beam-spin 3s linear infinite;"></div>
+            <div class="absolute inset-[1px] rounded-full bg-[#C8A96E]"></div>
+          </div>
+          <span class="relative z-10 uppercase tracking-tight font-bold">Começar trial grátis →</span>
+        </a>
+      </div>
+
+      <!-- Personalizado -->
+      <div class="scroll-item scroll-fade-up delay-200 bg-[#0A0A0C] border border-white/[0.06] rounded-3xl p-8 hover:border-white/20 transition-all duration-300" style="animation-play-state:running">
+        <h3 class="font-bold text-white text-xl mb-1">Personalizado</h3>
+        <p class="text-xs text-white/40 uppercase tracking-wider mb-6 font-medium">Para empresas em crescimento</p>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-4xl font-extrabold tracking-tight">R$ 397</span>
+          <span class="text-sm text-white/40">/mês</span>
+        </div>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-center gap-3 text-sm text-white/70 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Tudo do Profissional
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/70 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Usuários ilimitados
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/70 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Base jurídica da empresa
+          </li>
+          <li class="flex items-center gap-3 text-sm text-white/70 font-light">
+            <svg class="w-4 h-4 text-[#C8A96E] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Suporte dedicado
+          </li>
+        </ul>
+        <a href="#acesso" class="block w-full py-3 px-4 text-center text-xs font-bold uppercase tracking-widest border border-white/10 hover:bg-white/5 rounded-full transition-colors text-white">
+          Começar trial grátis
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO RETAGUARDA JURÍDICA
+       ══════════════════════════════════════════════════════════════ -->
+  <section class="py-24 px-6 max-w-5xl mx-auto border-t border-white/[0.04]">
+    <div class="text-center mb-14">
+      <span class="scroll-item scroll-fade-up text-xs text-[#C8A96E] font-semibold tracking-[0.25em] uppercase block mb-4" style="animation-play-state:running">Confiabilidade</span>
+      <h2 class="scroll-item scroll-fade-up delay-100 text-3xl sm:text-4xl font-extrabold tracking-tight" style="animation-play-state:running">
+        Não é só tecnologia.<br/>
+        <span class="font-serif italic font-normal text-white/50">Há uma equipe jurídica por trás.</span>
+      </h2>
+      <p class="scroll-item scroll-fade-up delay-200 text-white/40 mt-4 text-sm font-light max-w-lg mx-auto" style="animation-play-state:running">
+        O AJI tem retaguarda de advogados especializados. A orientação que você recebe passa por supervisão jurídica profissional — não é uma resposta genérica de IA sem responsabilidade.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
+
+      <!-- Pilar 1 -->
+      <div class="scroll-item scroll-fade-up relative overflow-hidden bg-[#0A0A0C] border border-white/[0.08] rounded-3xl p-7 hover:border-[#C8A96E]/20 transition-all duration-300" style="animation-play-state:running">
+        <div class="pointer-events-none absolute inset-0 opacity-10" style="background-image:radial-gradient(rgba(255,255,255,0.8) 1px,transparent 1px);background-size:28px 28px"></div>
+        <div class="relative z-10">
+          <div class="w-11 h-11 rounded-xl bg-[#C8A96E]/10 border border-[#C8A96E]/20 flex items-center justify-center mb-5">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">Responsável técnico OAB</h3>
+          <p class="text-sm text-white/45 font-light leading-relaxed">A plataforma opera com responsável técnico jurídico formalmente inscrito na OAB, garantindo que a orientação esteja dentro dos limites legais.</p>
+        </div>
+      </div>
+
+      <!-- Pilar 2 -->
+      <div class="scroll-item scroll-fade-up delay-100 relative overflow-hidden bg-[#0A0A0C] border border-white/[0.08] rounded-3xl p-7 hover:border-[#C8A96E]/20 transition-all duration-300" style="animation-play-state:running">
+        <div class="pointer-events-none absolute inset-0 opacity-10" style="background-image:radial-gradient(rgba(255,255,255,0.8) 1px,transparent 1px);background-size:28px 28px"></div>
+        <div class="relative z-10">
+          <div class="w-11 h-11 rounded-xl bg-[#C8A96E]/10 border border-[#C8A96E]/20 flex items-center justify-center mb-5">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">Equipe jurídica especializada</h3>
+          <p class="text-sm text-white/45 font-light leading-relaxed">Base de conhecimento construída e supervisionada por advogados especializados em rotinas empresariais. Atualizada com a legislação brasileira vigente.</p>
+        </div>
+      </div>
+
+      <!-- Pilar 3 -->
+      <div class="scroll-item scroll-fade-up delay-200 relative overflow-hidden bg-[#0A0A0C] border border-white/[0.08] rounded-3xl p-7 hover:border-[#C8A96E]/20 transition-all duration-300" style="animation-play-state:running">
+        <div class="pointer-events-none absolute inset-0 opacity-10" style="background-image:radial-gradient(rgba(255,255,255,0.8) 1px,transparent 1px);background-size:28px 28px"></div>
+        <div class="relative z-10">
+          <div class="w-11 h-11 rounded-xl bg-[#C8A96E]/10 border border-[#C8A96E]/20 flex items-center justify-center mb-5">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3 class="text-base font-bold text-white mb-2">Escalada para análise humana</h3>
+          <p class="text-sm text-white/45 font-light leading-relaxed">Casos complexos ou sensíveis são encaminhados para análise jurídica especializada. O sistema identifica quando a situação exige atuação humana direta.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloco informativo formal — texto do Julio -->
+    <div class="scroll-item scroll-fade-up relative overflow-hidden rounded-3xl p-8 md:p-10" style="animation-play-state:running; background:linear-gradient(135deg,rgba(200,169,110,0.05),rgba(200,169,110,0.02)); border:1px solid rgba(200,169,110,0.15)">
+      <div class="pointer-events-none absolute inset-0 opacity-5" style="background-image:radial-gradient(rgba(255,255,255,0.8) 1px,transparent 1px);background-size:28px 28px"></div>
+      <div class="relative z-10 flex gap-6 items-start">
+        <div class="w-10 h-10 rounded-xl bg-[#C8A96E]/10 border border-[#C8A96E]/25 flex items-center justify-center shrink-0 mt-1">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <p class="text-xs text-[#C8A96E] font-semibold uppercase tracking-widest mb-4">Escopo e limitações da ferramenta</p>
+          <p class="text-sm text-white/60 leading-relaxed mb-3">
+            O AJI é uma ferramenta de apoio à decisão empresarial com base jurídica preventiva. Não presta consultoria jurídica individualizada, não emite pareceres formais e não substitui a atuação de advogado habilitado.
+          </p>
+          <p class="text-sm text-white/60 leading-relaxed mb-3">
+            O uso da plataforma não estabelece relação advogado-cliente. As orientações disponibilizadas têm caráter informativo e preventivo, e não constituem aconselhamento jurídico definitivo para casos específicos.
+          </p>
+          <p class="text-sm text-white/60 leading-relaxed mb-3">
+            Demandas jurídicas já em curso, processos judiciais ou situações que exijam atuação formal perante órgãos públicos devem necessariamente ser acompanhadas por advogado regularmente inscrito na OAB.
+          </p>
+          <p class="text-sm text-white/60 leading-relaxed">
+            Casos complexos ou sensíveis identificados pela plataforma podem ser encaminhados para análise jurídica especializada, momento em que haverá atuação efetiva de profissional habilitado.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       SEÇÃO CTA FINAL,  CAPTURA DE LEAD
+       ══════════════════════════════════════════════════════════════ -->
+  <section id="acesso" class="py-24 px-6 border-t border-white/[0.04]">
+    <div class="max-w-2xl mx-auto text-center">
+
+      <!-- Glow orb -->
+      <div class="pointer-events-none absolute left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-[radial-gradient(ellipse_at_center,rgba(200,169,110,0.08),transparent_70%)] -mt-20"></div>
+
+      <span class="scroll-item scroll-fade-up text-xs text-[#C8A96E] font-semibold tracking-[0.25em] uppercase block mb-6 relative" style="animation-play-state:running">Acesso Antecipado</span>
+
+      <h2 class="scroll-item scroll-fade-up delay-100 text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-4 relative" style="animation-play-state:running">
+        Garanta seu acesso<br/>
+        <span class="font-serif italic font-normal text-white/50">antes do lançamento</span>
+      </h2>
+
+      <p class="scroll-item scroll-fade-up delay-200 text-white/40 mb-10 font-light text-base leading-relaxed relative" style="animation-play-state:running">
+        Os primeiros 100 empresários terão <strong class="text-white/80">condições especiais de lançamento</strong> e acesso antecipado à plataforma.
+      </p>
+
+      <!-- Form -->
+      <form id="cta-form" class="scroll-item scroll-fade-up delay-300 flex flex-col gap-4 relative" style="animation-play-state:running" onsubmit="handleSubmit(event,'cta-form')">
+        <input
+          type="text" name="nome" placeholder="Seu nome"
+          required
+          class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#C8A96E]/50 transition-all"
+        />
+        <input
+          type="text" name="whatsapp" placeholder="WhatsApp (ex: 11 99999-0000)"
+          required
+          class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#C8A96E]/50 transition-all"
+        />
+        <input
+          type="email" name="email" placeholder="E-mail (opcional)"
+          class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#C8A96E]/50 transition-all"
+        />
+        <!-- Beam button grande -->
+        <button type="submit"
+          class="group inline-flex w-full overflow-hidden transition-all duration-300 hover:scale-[1.01] focus:outline-none font-semibold text-white h-[58px] rounded-2xl relative items-center justify-center"
+          style="position:relative; --border-gradient:linear-gradient(135deg,rgba(200,169,110,0.5),rgba(200,169,110,0),rgba(200,169,110,0.5)); --border-radius-before:1rem">
+          <div class="absolute inset-0 -z-20 rounded-2xl overflow-hidden p-[1px]">
+            <div class="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0_300deg,#C8A96E_360deg)]" style="animation:beam-spin 3s linear infinite;"></div>
+            <div class="absolute inset-[1px] rounded-2xl bg-[#070F1E]"></div>
+          </div>
+          <div class="overflow-hidden bg-[#0A1628] rounded-2xl absolute inset-[2px]">
+            <div class="bg-gradient-to-b from-[#C8A96E]/10 to-transparent absolute inset-0"></div>
+            <div class="opacity-[0.06] mix-blend-plus-lighter absolute inset-0" style="background-image:repeating-linear-gradient(90deg,#fff,#fff 1px,transparent 1px,transparent 8px);background-size:24px 100%;animation:lines-slide 1.5s linear infinite;"></div>
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-full bg-[#C8A96E]/10 blur-2xl group-hover:bg-[#C8A96E]/20 transition-colors duration-500"></div>
+          </div>
+          <span class="relative z-10 text-base uppercase tracking-wide">Quero acesso antecipado →</span>
+        </button>
+      </form>
+
+      <!-- Success state (hidden) -->
+      <div id="cta-success" class="hidden mt-6 p-6 bg-[#C8A96E]/10 border border-[#C8A96E]/30 rounded-2xl">
+        <p class="text-[#C8A96E] font-semibold text-base mb-1">✓ Perfeito! Você está na lista.</p>
+        <p class="text-white/50 text-sm font-light">Entraremos em contato pelo WhatsApp assim que o acesso for liberado.</p>
+      </div>
+
+      <!-- Disclaimer legal -->
+      <p class="mt-6 text-[11px] text-white/20 leading-relaxed font-light">
+        O AJI oferece <em>orientação jurídica preventiva</em>,  não substitui a consultoria de um advogado habilitado.<br/>
+        Responsável técnico jurídico: <strong class="text-white/30">Julio [OAB/UF 000000]</strong> · LGPD: seus dados são usados somente para contato.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       FOOTER
+       ══════════════════════════════════════════════════════════════ -->
+  <footer class="border-t border-white/[0.04] py-10 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <!-- Logo mini -->
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 32" width="64" height="26">
+          <g transform="translate(14,16)" fill="none" stroke="#C8A96E" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M-4,-12 L0,-16 L4,-12 Q5,-11 6,-11 L10,-10 L11,-5 Q11,-4 12,-3 L15,0 L12,3 Q11,4 11,5 L10,10 L6,11 Q5,11 4,12 L0,15 L-4,12 Q-5,11 -6,11 L-10,10 L-11,5 Q-11,4 -12,3 L-15,0 L-12,-3 Q-11,-4 -11,-5 L-10,-10 L-6,-11 Q-5,-11 -4,-12 Z"/>
+            <line x1="0" y1="-12" x2="0" y2="2"/>
+            <path d="M0,-9 C-2,-11 -6,-10 -8,-7 C-10,-4 -9,-1 -6,1 C-4,2 -2,2 0,1"/>
+            <path d="M0,-9 C2,-11 6,-10 8,-7 C10,-4 9,-1 6,1 C4,2 2,2 0,1"/>
+            <circle cx="0" cy="-12" r="1.2" fill="#C8A96E"/>
+            <circle cx="-11" cy="0" r="1.2" fill="#C8A96E"/>
+            <circle cx="11" cy="0" r="1.2" fill="#C8A96E"/>
+          </g>
+          <text x="35" y="21" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="17" fill="#F8F8F8">AJI</text>
+        </svg>
+        <span class="text-white/20 text-xs font-light">Assistente Jurídico Inteligente</span>
+      </div>
+
+      <p class="text-[11px] text-white/20 text-center font-light">
+        © 2026 AJI. Ferramenta de apoio à decisão empresarial com base jurídica preventiva. Não substitui advogado habilitado. Não estabelece relação advogado-cliente. CNPJ 00.000.000/0001-00
+      </p>
+
+      <div class="flex gap-5">
+        <a href="#" class="text-[12px] text-white/30 hover:text-white/60 transition-colors font-light">Termos</a>
+        <a href="#" class="text-[12px] text-white/30 hover:text-white/60 transition-colors font-light">Privacidade</a>
+        <a href="#" class="text-[12px] text-white/30 hover:text-white/60 transition-colors font-light">Contato</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       JS,  Scroll animations + Form handler
+       ══════════════════════════════════════════════════════════════ -->
+  <script>
+    // Scroll-triggered animations (IntersectionObserver)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.scroll-item').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Form handler
+    function handleSubmit(e, formId) {
+      e.preventDefault();
+      const form = document.getElementById(formId);
+      const successId = formId === 'hero-form' ? 'hero-success' : 'cta-success';
+      form.classList.add('hidden');
+      const success = document.getElementById(successId);
+      success.classList.remove('hidden');
+      success.style.animationPlayState = 'running';
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:monolith-architecture.aura.build)",
+      "Bash(vercel --prod)"
+    ]
+  }
+}
