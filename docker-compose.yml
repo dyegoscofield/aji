@@ -1,0 +1,72 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: aji-db
+    environment:
+      POSTGRES_USER: aji
+      POSTGRES_PASSWORD: aji
+      POSTGRES_DB: aji_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aji -d aji_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aji-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: aji-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aji-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aji-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://aji:aji@aji-db:5432/aji_db
+      REDIS_URL: redis://aji-redis:6379/0
+    volumes:
+      - ./backend:/app
+      - ./knowledge_base:/knowledge_base:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - aji-network
+
+networks:
+  aji-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

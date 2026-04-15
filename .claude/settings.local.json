@@ -2,7 +2,27 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:monolith-architecture.aura.build)",
-      "Bash(vercel --prod)"
+      "Bash(vercel --prod)",
+      "Bash(claude plugin:*)",
+      "mcp__plugin_claude-mem_mcp-search__get_observations",
+      "Bash(printf '.PHONY: dev down logs migrate shell test psql clean\\\\n\\\\ndev:\\\\n\\\\t@docker compose up --build\\\\n\\\\ndown:\\\\n\\\\t@docker compose down\\\\n\\\\nlogs:\\\\n\\\\t@docker compose logs -f\\\\n\\\\nmigrate:\\\\n\\\\t@docker compose exec api alembic upgrade head\\\\n\\\\nshell:\\\\n\\\\t@docker compose exec api bash\\\\n\\\\ntest:\\\\n\\\\t@docker compose exec api pytest tests/ -v\\\\n\\\\npsql:\\\\n\\\\t@docker compose exec postgres psql -U aji -d aji_db\\\\n\\\\nclean:\\\\n\\\\t@echo \"WARNING: Remove todos os containers e volumes \\(incluindo dados do banco\\).\"\\\\n\\\\t@echo \"Pressione Ctrl+C para cancelar, ou Enter para continuar.\"\\\\n\\\\t@read _\\\\n\\\\t@docker compose down -v --remove-orphans\\\\n')",
+      "Bash(python -c \"import secrets; print\\(secrets.token_hex\\(32\\)\\)\")",
+      "Bash(where docker:*)",
+      "Bash(powershell -Command \"Get-Command docker -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
+      "Bash(powershell -Command \"Get-Command docker* -ErrorAction SilentlyContinue | Select-Object Source\")",
+      "Bash(powershell -Command \"Test-Path 'C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe'\")",
+      "Bash(timeout 15)",
+      "Bash(findstr ALLOWED)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(echo.)",
+      "Bash(curl -s http://localhost:8000/docs -o nul -w \"Swagger: HTTP %{http_code}\")",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/auth/register -H \"Content-Type: application/json\" -d \"{\\\\\"cnpj\\\\\":\\\\\"33000167000101\\\\\",\\\\\"email\\\\\":\\\\\"teste@empresa.com\\\\\",\\\\\"password\\\\\":\\\\\"senha1234\\\\\"}\")",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/auth/register -H \"Content-Type: application/json\" -d \"{\\\\\"cnpj\\\\\":\\\\\"33000167000101\\\\\",\\\\\"email\\\\\":\\\\\"outro@empresa.com\\\\\",\\\\\"password\\\\\":\\\\\"senha1234\\\\\"}\")",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"teste@empresa.com\\\\\",\\\\\"password\\\\\":\\\\\"senha1234\\\\\"}\")",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"teste@empresa.com\\\\\",\\\\\"password\\\\\":\\\\\"senhaerrada\\\\\"}\")",
+      "Bash(curl -s -X GET http://localhost:8000/api/v1/auth/me -H \"Authorization: Bearer token.invalido.aqui\")",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/auth/register -H \"Content-Type: application/json\" -d \"{\\\\\"cnpj\\\\\":\\\\\"1234\\\\\",\\\\\"email\\\\\":\\\\\"x@y.com\\\\\",\\\\\"password\\\\\":\\\\\"senha1234\\\\\"}\")"
     ]
   }
 }
